@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Analytics Pro - Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0e1a;
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .note-box {
+            background: rgba(0, 217, 255, 0.1);
+            border-left: 4px solid #00d9ff;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
+        .note-box strong {
+            color: #00d9ff;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
+        }
+
+        .sidebar {
+            background: #151b2d;
+            padding: 25px;
+            border-radius: 10px;
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+
+        .sidebar h2 {
+            color: #ff3366;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .video-count {
+            background: #0a0e1a;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .video-count-label {
+            color: #8b92b0;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .video-count-value {
+            color: #00d9ff;
+            font-size: 3rem;
+            font-weight: 700;
+        }
+
+        .main-content {
+            background: #151b2d;
+            padding: 30px;
+            border-radius: 10px;
+        }
+
+        .section-header {
+            color: #ff3366;
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #1f2740;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .subsection-header {
+            color: #00d9ff;
+            font-size: 1.2rem;
+            margin: 25px 0 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-label {
+            color: #8b92b0;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+        }
+
+        input, select, textarea {
+            background: #0a0e1a;
+            border: 1px solid #1f2740;
+            border-radius: 5px;
+            color: #ffffff;
+            padding: 12px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #ff3366;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .btn-group {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            background: #ff3366;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 5px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: #ff4477;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #00d9ff;
+        }
+
+        .btn-secondary:hover {
+            background: #00eaff;
+        }
+
+        .btn-danger {
+            background: #ff4444;
+        }
+
+        .btn-danger:hover {
+            background: #ff5555;
+        }
+
+        #dashboard {
+            display: none;
+        }
+
+        .metric-card {
+            background: #0a0e1a;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .metric-card-label {
+            color: #8b92b0;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+        }
+
+        .metric-card-value {
+            color: #00d9ff;
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: inline-block;
+            margin-top: 8px;
+        }
+
+        .status-excelente {
+            background: rgba(0, 255, 136, 0.15);
+            color: #00ff88;
+            border: 2px solid #00ff88;
+        }
+
+        .status-bom {
+            background: rgba(255, 179, 0, 0.15);
+            color: #ffb300;
+            border: 2px solid #ffb300;
+        }
+
+        .status-ruim {
+            background: rgba(255, 68, 68, 0.15);
+            color: #ff4444;
+            border: 2px solid #ff4444;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .chart-container {
+            background: #0a0e1a;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+
+        .insights-box {
+            background: rgba(255, 51, 102, 0.05);
+            border-left: 4px solid #ff3366;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+
+        .insights-box h3 {
+            color: #00d9ff;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .insights-box ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .insights-box li {
+            padding: 10px;
+            margin: 8px 0;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 5px;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        .info-box {
+            background: rgba(0, 217, 255, 0.05);
+            border: 1px solid #1f2740;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .info-box h4 {
+            color: #00d9ff;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .info-box .formula {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            margin: 8px 0;
+            color: #ffb300;
+            font-size: 0.85rem;
+        }
+
+        .info-box .benchmark {
+            color: #00ff88;
+            font-weight: 600;
+        }
+
+        .executive-summary {
+            background: linear-gradient(135deg, rgba(255, 51, 102, 0.1), rgba(0, 217, 255, 0.1));
+            border: 2px solid #ff3366;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .executive-summary h2 {
+            color: #ff3366;
+            margin-bottom: 20px;
+            font-size: 1.6rem;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        .summary-column h3 {
+            color: #00d9ff;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .summary-column ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .summary-column li {
+            margin: 10px 0;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 5px;
+            font-size: 0.95rem;
+        }
+
+        .section-divider {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #ff3366, transparent);
+            margin: 40px 0;
+        }
+
+        .section-number {
+            background: #ff3366;
+            width: 35px;
+            height: 35px;
+            border-radius: 5px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        @media (max-width: 1200px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: static;
+            }
+
+            .input-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .input-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .btn-group {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="note-box">
+            📘 <strong>Nota:</strong> Os vídeos são salvos apenas durante esta sessão no navegador. Para salvar permanentemente, exporte os dados antes de fechar.
+        </div>
+
+        <div class="layout">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <h2>📹 Vídeos Salvos</h2>
+                <div class="video-count">
+                    <div class="video-count-label">Total de Vídeos</div>
+                    <div class="video-count-value">0</div>
+                </div>
+                <div id="sidebar-status" style="color: #8b92b0; font-size: 0.9rem;">
+                    Nenhum vídeo salvo ainda
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="main-content">
+                <div id="form-container">
+                    <h1 class="section-header">📄 Dados do Vídeo</h1>
+
+                    <!-- Informações Básicas -->
+                    <h2 class="subsection-header">📋 Informações Básicas</h2>
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label class="input-label">Título do Vídeo</label>
+                            <input type="text" id="tituloVideo" placeholder="Ex: analista vs. cientista">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Data de Publicação</label>
+                            <input type="date" id="dataPublicacao">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Duração Total do Vídeo (minutos)</label>
+                            <input type="number" step="0.1" id="duracaoVideo" placeholder="Ex: 11">
+                        </div>
+                    </div>
+
+                    <!-- Métricas de Alcance -->
+                    <h2 class="subsection-header">📊 Métricas de Alcance</h2>
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label class="input-label">Impressão</label>
+                            <input type="number" id="impressoes" placeholder="Ex: 42200">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Taxa de cliques de impressão (%)</label>
+                            <input type="number" step="0.1" id="taxaCliques" placeholder="Ex: 3,5">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Visualização</label>
+                            <input type="number" id="visualizacoes" placeholder="Ex: 3227">
+                        </div>
+                    </div>
+
+                    <!-- Origens de Tráfego -->
+                    <h2 class="subsection-header">🌐 Origens de Tráfego</h2>
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label class="input-label">Recursos de navegação (%)</label>
+                            <input type="number" step="0.1" id="recursosNavegacao" placeholder="Ex: 37,20">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Vídeos sugeridos (%)</label>
+                            <input type="number" step="0.1" id="videosSugeridos" placeholder="Ex: 15,60">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Outros recursos do YouTube (%)</label>
+                            <input type="number" step="0.1" id="outrosRecursos" placeholder="Ex: 36,60">
+                        </div>
+                    </div>
+
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label class="input-label">Outros vídeos que sugerem este vídeo (%)</label>
+                            <input type="number" step="0.1" id="outrosVideos" placeholder="Ex: 17,00">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Porcentagem das playlists que sugerem este vídeo (%)</label>
+                            <input type="number" step="0.1" id="playlists" placeholder="Ex: 0,6">
+                        </div>
+                    </div>
+
+                    <!-- Cliques por Playlist -->
+                    <h3 class="subsection-header" style="color: #ff3366; font-size: 1rem;">📑 Cliques por Playlist</h3>
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label class="input-label">Cliques - Python para Dados</label>
+                            <input type="number" id="cliquesPython" placeholder="Ex: 0">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Cliques - Carreira e Mercado de Dados</label>
+                            <input type="number" id="cliquesCarreira" placeholder="Ex: 1">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Cliques - Fundamentos de Estatística</label>
+                            <input type="number" id="cliquesEstatistica" placeholder="Ex: 0">
+                        </div>
+                    </div>
+
+                    <!-- Métricas de Direcionamento -->
+                    <h2 class="subsection-header">🔗 Métricas de Direcionamento</h2>
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label class="input-label">Pesquisa do YouTube (%)</label>
+                            <input type="number" step="0.1" id="pesquisaYouTube" placeholder="Ex: 2,7">
+                        </div>
+                    </div>
+
+                    <div class="input-group" style="margin-bottom: 20px;">
+                        <label class="input-label">Termos de pesquisa do YouTube (separe por vírgula)</label>
+                        <textarea id="termosPesquisa" placeholder="analista de dados 11,5%, cientista de dados 9,0%, data science 2,6%, analista de dados por onde começar 1,3%, asimov academy 1,3%"></textarea>
+                    </div>
+
+                    <!-- Métricas de Engajamento -->
+                    <h2 class="subsection-header">❤️ Métricas de Engajamento</h2>
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label class="input-label">Duração média da visualização (minutos)</label>
+                            <input type="number" step="0.01" id="duracaoMedia" placeholder="Ex: 3,35">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Porcentagem dos 30 primeiros segundos (%)</label>
+                            <input type="number" step="0.1" id="porcentagem30s" placeholder="Ex: 60">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Porcentagem da última minutagem registrada (%)</label>
+                            <input type="number" step="0.1" id="porcentagemFinal" placeholder="Ex: 28">
+                        </div>
+                    </div>
+
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label class="input-label">Gostei</label>
+                            <input type="number" id="gostei" placeholder="Ex: 225">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Não gostei</label>
+                            <input type="number" id="naoGostei" placeholder="Ex: 0">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Comentários (quantidade)</label>
+                            <input type="number" id="comentarios" placeholder="Ex: 14">
+                        </div>
+                    </div>
+
+                    <!-- Análise de Comentários -->
+                    <h3 class="subsection-header" style="color: #ff3366; font-size: 1rem;">💬 Análise de Comentários</h3>
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label class="input-label">Sugestão de vídeos?</label>
+                            <select id="sugestaoVideos">
+                                <option value="Não">Não</option>
+                                <option value="Sim">Sim</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Quantos comentários negativos</label>
+                            <input type="number" id="comentariosNegativos" placeholder="Ex: 0">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Quantos comentários positivos</label>
+                            <input type="number" id="comentariosPositivos" placeholder="Ex: 1">
+                        </div>
+                    </div>
+
+                    <div class="input-group" style="margin-bottom: 20px;">
+                        <label class="input-label">Observações dos comentários</label>
+                        <textarea id="observacoesComentarios" placeholder="Dos 14 comentários do vídeo, foram analisadas muita dúvidas sobre o tema analista vs. cientista"></textarea>
+                    </div>
+
+                    <!-- Métricas de Público -->
+                    <h2 class="subsection-header">👥 Métricas de Público</h2>
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label class="input-label">Visualizações de Inscritos</label>
+                            <input type="number" id="visualizacoesInscritos" placeholder="Ex: 465">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Visualizações de Não Inscritos</label>
+                            <input type="number" id="visualizacoesNaoInscritos" placeholder="Ex: 2209">
+                        </div>
+                    </div>
+
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label class="input-label">Novos inscritos</label>
+                            <input type="number" id="novosInscritos" placeholder="Ex: 55">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Novos espectadores (%)</label>
+                            <input type="number" step="0.1" id="novosEspectadores" placeholder="Ex: 36,80">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Espectadores casuais últimos 5 meses (%)</label>
+                            <input type="number" step="0.1" id="espectadoresCasuais" placeholder="Ex: 62,30">
+                        </div>
+                    </div>
+
+                    <!-- Botões -->
+                    <div class="btn-group">
+                        <button class="btn" onclick="generateDashboard()">📊 Gerar Análise</button>
+                        <button class="btn btn-secondary" onclick="loadExample()">💡 Carregar Exemplo</button>
+                        <button class="btn btn-danger" onclick="clearForm()">🗑️ Limpar Dados</button>
+                    </div>
+                </div>
+
+                <!-- Dashboard -->
+                <div id="dashboard">
+                    <!-- Resumo Executivo -->
+                    <div class="executive-summary">
+                        <h2>📋 Resumo Executivo & Prioridades</h2>
+                        <div class="summary-grid">
+                            <div class="summary-column">
+                                <h3>🎯 Ações Prioritárias</h3>
+                                <ul id="priority-actions"></ul>
+                            </div>
+                            <div class="summary-column">
+                                <h3>✅ Pontos Fortes</h3>
+                                <ul id="strong-points"></ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section-divider"></div>
+
+                    <!-- Seção 1: Alcance -->
+                    <h1 class="section-header">
+                        <span class="section-number">1</span>
+                        O vídeo está sendo DESCOBERTO? (Alcance)
+                    </h1>
+                    <div class="metrics-grid" id="alcance-metrics"></div>
+                    <div class="chart-container">
+                        <div id="traffic-chart"></div>
+                    </div>
+                    <div class="insights-box" id="alcance-insights"></div>
+
+                    <div class="section-divider"></div>
+
+                    <!-- Seção 2: Retenção -->
+                    <h1 class="section-header">
+                        <span class="section-number">2</span>
+                        As pessoas estão ASSISTINDO? (Retenção)
+                    </h1>
+                    <div class="metrics-grid" id="retencao-metrics"></div>
+                    <div class="chart-container">
+                        <div id="retention-chart"></div>
+                    </div>
+                    <div class="insights-box" id="retencao-insights"></div>
+
+                    <div class="section-divider"></div>
+
+                    <!-- Seção 3: Engajamento -->
+                    <h1 class="section-header">
+                        <span class="section-number">3</span>
+                        O vídeo está sendo APROVADO? (Engajamento)
+                    </h1>
+
+                    <!-- Info boxes -->
+                    <div class="info-box">
+                        <h4>📊 Like-to-View Ratio (Taxa de Curtidas/Visualização)</h4>
+                        <p><strong>O que é:</strong> Indica o nível de apreciação do conteúdo. Uma alta proporção mostra que o público gostou do vídeo.</p>
+                        <p class="formula">Cálculo: (Número de Curtidas ÷ Total de Visualizações) × 100</p>
+                        <p class="benchmark">✓ O que é considerado bom: Entre 3.75% a 4% (ou seja, 4 curtidas para cada 100 visualizações) segundo a Viralyft.</p>
+                    </div>
+
+                    <div class="info-box">
+                        <h4>💬 Comment-to-View Ratio (Taxa de Comentários/Visualização)</h4>
+                        <p><strong>O que é:</strong> Mede o quão envolvente é o conteúdo, gerando discussões ou opiniões.</p>
+                        <p class="formula">Cálculo: (Número de Comentários ÷ Total de Visualizações) × 100</p>
+                        <p class="benchmark">✓ O que é considerado bom: Acima de 0.5% indica alto engajamento, conforme a Kalodata.</p>
+                    </div>
+
+                    <div class="metrics-grid" id="engajamento-metrics"></div>
+                    <div class="chart-container">
+                        <div id="engagement-chart"></div>
+                    </div>
+                    <div class="insights-box" id="engajamento-insights"></div>
+
+                    <div class="section-divider"></div>
+
+                    <!-- Seção 4: Conversão -->
+                    <h1 class="section-header">
+                        <span class="section-number">4</span>
+                        O vídeo está CONVERTENDO? (Resultados)
+                    </h1>
+                    <div class="metrics-grid" id="conversao-metrics"></div>
+                    <div class="chart-container">
+                        <div id="subscriber-chart"></div>
+                    </div>
+                    <div class="insights-box" id="conversao-insights"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function loadExample() {
+            document.getElementById('tituloVideo').value = 'analista vs. cientista';
+            document.getElementById('dataPublicacao').value = '2026-01-30';
+            document.getElementById('duracaoVideo').value = 11;
+            document.getElementById('impressoes').value = 42200;
+            document.getElementById('taxaCliques').value = 3.5;
+            document.getElementById('visualizacoes').value = 3227;
+            document.getElementById('recursosNavegacao').value = 37.20;
+            document.getElementById('videosSugeridos').value = 15.60;
+            document.getElementById('outrosRecursos').value = 36.60;
+            document.getElementById('outrosVideos').value = 17.00;
+            document.getElementById('playlists').value = 0.6;
+            document.getElementById('cliquesPython').value = 0;
+            document.getElementById('cliquesCarreira').value = 1;
+            document.getElementById('cliquesEstatistica').value = 0;
+            document.getElementById('pesquisaYouTube').value = 2.7;
+            document.getElementById('termosPesquisa').value = 'analista de dados 11,5%, cientista de dados 9,0%, data science 2,6%, analista de dados por onde começar 1,3%, asimov academy 1,3%';
+            document.getElementById('duracaoMedia').value = 3.35;
+            document.getElementById('porcentagem30s').value = 60;
+            document.getElementById('porcentagemFinal').value = 28;
+            document.getElementById('gostei').value = 225;
+            document.getElementById('naoGostei').value = 0;
+            document.getElementById('comentarios').value = 14;
+            document.getElementById('sugestaoVideos').value = 'Não';
+            document.getElementById('comentariosNegativos').value = 0;
+            document.getElementById('comentariosPositivos').value = 1;
+            document.getElementById('observacoesComentarios').value = 'Dos 14 comentários do vídeo, foram analisadas muita dúvidas sobre o tema analista vs. cientista';
+            document.getElementById('visualizacoesInscritos').value = 465;
+            document.getElementById('visualizacoesNaoInscritos').value = 2209;
+            document.getElementById('novosInscritos').value = 55;
+            document.getElementById('novosEspectadores').value = 36.80;
+            document.getElementById('espectadoresCasuais').value = 62.30;
+            
+            alert('✅ Dados de exemplo carregados! Clique em "Gerar Análise".');
+        }
+
+        function clearForm() {
+            document.getElementById('form-container').querySelectorAll('input, textarea').forEach(input => input.value = '');
+            document.getElementById('sugestaoVideos').value = 'Não';
+            document.getElementById('dashboard').style.display = 'none';
+            alert('🗑️ Formulário limpo!');
+        }
+
+        function generateDashboard() {
+            const data = {
+                tituloVideo: document.getElementById('tituloVideo').value || 'Vídeo sem título',
+                dataPublicacao: document.getElementById('dataPublicacao').value,
+                duracaoVideo: parseFloat(document.getElementById('duracaoVideo').value) || 0,
+                impressoes: parseFloat(document.getElementById('impressoes').value) || 0,
+                taxaCliques: parseFloat(document.getElementById('taxaCliques').value) || 0,
+                visualizacoes: parseFloat(document.getElementById('visualizacoes').value) || 0,
+                recursosNavegacao: parseFloat(document.getElementById('recursosNavegacao').value) || 0,
+                duracaoMedia: parseFloat(document.getElementById('duracaoMedia').value) || 0,
+                porcentagem30s: parseFloat(document.getElementById('porcentagem30s').value) || 0,
+                porcentagemFinal: parseFloat(document.getElementById('porcentagemFinal').value) || 0,
+                gostei: parseInt(document.getElementById('gostei').value) || 0,
+                naoGostei: parseInt(document.getElementById('naoGostei').value) || 0,
+                comentarios: parseInt(document.getElementById('comentarios').value) || 0,
+                comentariosPositivos: parseInt(document.getElementById('comentariosPositivos').value) || 0,
+                comentariosNegativos: parseInt(document.getElementById('comentariosNegativos').value) || 0,
+                sugestaoVideos: document.getElementById('sugestaoVideos').value,
+                novosInscritos: parseInt(document.getElementById('novosInscritos').value) || 0,
+                visualizacoesInscritos: parseInt(document.getElementById('visualizacoesInscritos').value) || 0,
+                visualizacoesNaoInscritos: parseInt(document.getElementById('visualizacoesNaoInscritos').value) || 0,
+                novosEspectadores: parseFloat(document.getElementById('novosEspectadores').value) || 0,
+                espectadoresCasuais: parseFloat(document.getElementById('espectadoresCasuais').value) || 0
+            };
+
+            if (data.visualizacoes === 0) {
+                alert('⚠️ Por favor, preencha pelo menos o número de visualizações.');
+                return;
+            }
+
+            // Calcular métricas
+            const porcentagemMedia = data.duracaoVideo > 0 ? (data.duracaoMedia / data.duracaoVideo) * 100 : 0;
+            const likeToViewRatio = data.visualizacoes > 0 ? (data.gostei / data.visualizacoes) * 100 : 0;
+            const commentToViewRatio = data.visualizacoes > 0 ? (data.comentarios / data.visualizacoes) * 100 : 0;
+            const subsConversionRate = data.visualizacoes > 0 ? (data.novosInscritos / data.visualizacoes) * 100 : 0;
+            
+            const totalVis = data.visualizacoesInscritos + data.visualizacoesNaoInscritos;
+            const percInscritos = totalVis > 0 ? (data.visualizacoesInscritos / totalVis) * 100 : 0;
+            const percNaoInscritos = totalVis > 0 ? (data.visualizacoesNaoInscritos / totalVis) * 100 : 0;
+
+            const totalComentarios = data.comentariosPositivos + data.comentariosNegativos;
+            const sentimentoComentarios = totalComentarios > 0 ? (data.comentariosPositivos / totalComentarios) * 100 : 0;
+
+            // Status
+            const ctrStatus = data.taxaCliques >= 5 ? { class: 'excelente', text: '🔥 EXCELENTE (≥5%)' } :
+                             data.taxaCliques >= 2.5 ? { class: 'bom', text: '👍 BOM (2.5-5%)' } :
+                             { class: 'ruim', text: '⚠️ BAIXO (<2.5%)' };
+
+            const hookStatus = data.porcentagem30s >= 70 ? { class: 'excelente', text: '🔥 EXCELENTE (≥70%)' } :
+                              data.porcentagem30s >= 60 ? { class: 'bom', text: '👍 BOM (60-70%)' } :
+                              { class: 'ruim', text: '⚠️ FRACO (<60%)' };
+
+            const retencaoStatus = porcentagemMedia >= 50 ? { class: 'excelente', text: '🔥 EXCELENTE (≥50%)' } :
+                                  porcentagemMedia >= 40 ? { class: 'bom', text: '👍 BOM (40-50%)' } :
+                                  { class: 'ruim', text: '⚠️ BAIXA (<40%)' };
+
+            const likeStatus = likeToViewRatio >= 4 ? { class: 'excelente', text: '🔥 EXCELENTE (≥4%)' } :
+                              likeToViewRatio >= 2 ? { class: 'bom', text: '👍 BOM (2-4%)' } :
+                              { class: 'ruim', text: '⚠️ BAIXO (<2%)' };
+
+            const commentStatus = commentToViewRatio >= 0.5 ? { class: 'excelente', text: '🔥 EXCELENTE (>0.5%)' } :
+                                 commentToViewRatio >= 0.1 ? { class: 'bom', text: '👍 BOM (0.1-0.5%)' } :
+                                 { class: 'ruim', text: '⚠️ BAIXO (<0.1%)' };
+
+            const subsStatus = subsConversionRate >= 1.5 ? { class: 'excelente', text: '🔥 EXCELENTE (≥1.5%)' } :
+                              subsConversionRate >= 0.5 ? { class: 'bom', text: '👍 BOM (0.5-1.5%)' } :
+                              { class: 'ruim', text: '⚠️ BAIXO (<0.5%)' };
+
+            // Renderizar
+            renderReachSection(data, ctrStatus);
+            renderRetentionSection(data, porcentagemMedia, hookStatus, retencaoStatus);
+            renderEngagementSection(data, likeToViewRatio, commentToViewRatio, sentimentoComentarios, likeStatus, commentStatus);
+            renderConversionSection(data, subsConversionRate, totalVis, percInscritos, percNaoInscritos, subsStatus);
+            renderExecutiveSummary(data, porcentagemMedia, likeToViewRatio, subsConversionRate);
+
+            document.getElementById('dashboard').style.display = 'block';
+            document.getElementById('sidebar-status').innerHTML = `
+                <div style="color: #00ff88; font-weight: 700; margin-bottom: 15px;">✅ Dashboard Gerado!</div>
+                <div style="color: #8b92b0; font-size: 0.9rem; line-height: 1.6;">
+                    <p><strong>Vídeo:</strong> ${data.tituloVideo}</p>
+                    <p>📊 <strong>${data.visualizacoes.toLocaleString()}</strong> visualizações</p>
+                    <p>👁️ CTR: <strong>${data.taxaCliques}%</strong></p>
+                    <p>⏱️ Retenção: <strong>${porcentagemMedia.toFixed(1)}%</strong></p>
+                    <p>❤️ Like Ratio: <strong>${likeToViewRatio.toFixed(2)}%</strong></p>
+                </div>
+            `;
+
+            setTimeout(() => {
+                document.getElementById('dashboard').scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        }
+
+        function renderReachSection(data, ctrStatus) {
+            document.getElementById('alcance-metrics').innerHTML = `
+                <div class="metric-card">
+                    <div class="metric-card-label">Taxa de Cliques (CTR)</div>
+                    <div class="metric-card-value">${data.taxaCliques.toFixed(2)}%</div>
+                    <div class="status-badge status-${ctrStatus.class}">${ctrStatus.text}</div>
+                    <div style="color: #8b92b0; margin-top: 10px; font-size: 0.85rem;">Visualizações: ${data.visualizacoes.toLocaleString()}</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-card-label">Impressão</div>
+                    <div class="metric-card-value">${data.impressoes.toLocaleString()}</div>
+                    <div style="color: #8b92b0; margin-top: 10px; font-size: 0.85rem;">Total de impressões</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-card-label">Recursos de Navegação</div>
+                    <div class="metric-card-value">${data.recursosNavegacao.toFixed(1)}%</div>
+                    ${data.recursosNavegacao >= 50 ? '<div class="status-badge status-excelente">Alto tráfego Browse</div>' : ''}
+                    <div style="color: #8b92b0; margin-top: 10px; font-size: 0.85rem;">Tráfego orgânico</div>
+                </div>
+            `;
+
+            const trafficData = [{
+                values: [data.recursosNavegacao, 100 - data.recursosNavegacao],
+                labels: ['Recursos de Navegação', 'Outras Fontes'],
+                type: 'pie',
+                marker: { colors: ['#ff3366', '#00d9ff'] },
+                textinfo: 'label+percent',
+                textposition: 'inside'
+            }];
+
+            const trafficLayout = {
+                title: 'Distribuição de Tráfego',
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: { color: '#ffffff', size: 12 }
+            };
+
+            Plotly.newPlot('traffic-chart', trafficData, trafficLayout, {responsive: true});
+
+            const insights = [];
+            if (data.taxaCliques >= 5) {
+                insights.push('🔥 <strong>CTR EXCELENTE!</strong> ' + data.taxaCliques.toFixed(2) + '% está muito acima da média. Seu thumbnail e título estão funcionando perfeitamente!');
+            } else if (data.taxaCliques >= 2.5) {
+                insights.push('👍 <strong>CTR BOM:</strong> ' + data.taxaCliques.toFixed(2) + '% está na média. Teste thumbnails com mais contraste.');
+            } else {
+                insights.push('⚠️ <strong>CTR BAIXO:</strong> ' + data.taxaCliques.toFixed(2) + '% precisa melhorar. Teste 3 novos thumbnails diferentes.');
+            }
+
+            if (data.recursosNavegacao >= 50) {
+                insights.push('🚀 <strong>ALTO TRÁFEGO DE BROWSE:</strong> ' + data.recursosNavegacao.toFixed(1) + '% vem de recursos de navegação!');
+            }
+
+            if (insights.length === 0) {
+                insights.push('📊 Continue monitorando suas métricas de alcance.');
+            }
+
+            document.getElementById('alcance-insights').innerHTML = `
+                <h3>💡 Insights & Ações Recomendadas</h3>
+                <ul>${insights.map(i => `<li>${i}</li>`).join('')}</ul>
+            `;
+        }
+
+        function renderRetentionSection(data, porcentagemMedia, hookStatus, retencaoStatus) {
+            document.getElementById('retencao-metrics').innerHTML = `
+                <div class="metric-card">
+                    <div class="metric-card-label">Hook (30 segundos)</div>
+                    <div class="metric-card-value">${data.porcentagem30s.toFixed(1)}%</div>
+                    <div class="status-badge status-${hookStatus.class}">${hookStatus.text}</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-card-label">Retenção Média</div>
+                    <div class="metric-card-value">${porcentagemMedia.toFixed(1)}%</div>
+                    <div class="status-badge status-${retencaoStatus.class}">${retencaoStatus.text}</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-card-label">Retenção Final</div>
+                    <div class="metric-card-value">${data.porcentagemFinal.toFixed(1)}%</div>
+                    ${data.porcentagemFinal >= 30 ? '<div class="status-badge status-excelente">Final forte</div>' : ''}
+                </div>
+            `;
+
+            const retentionData = [{
+                x: ['30 segundos', 'Média', 'Final'],
+                y: [data.porcentagem30s, porcentagemMedia, data.porcentagemFinal],
+                type: 'bar',
+                marker: { color: ['#ff3366', '#00d9ff', '#00ff88'] },
+                text: [data.porcentagem30s.toFixed(1) + '%', porcentagemMedia.toFixed(1) + '%', data.porcentagemFinal.toFixed(1) + '%'],
+                textposition: 'auto'
+            }];
+
+            const retentionLayout = {
+                title: 'Retenção ao Longo do Vídeo',
+                yaxis: { title: 'Retenção (%)' },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: { color: '#ffffff', size: 12 }
+            };
+
+            Plotly.newPlot('retention-chart', retentionData, retentionLayout, {responsive: true});
+
+            const insights = [];
+            if (data.porcentagem30s >= 70) {
+                insights.push('🔥 <strong>HOOK EXCELENTE!</strong> ' + data.porcentagem30s.toFixed(1) + '% aos 30s é excepcional!');
+            } else if (data.porcentagem30s < 60) {
+                insights.push('⚠️ <strong>HOOK FRACO:</strong> ' + data.porcentagem30s.toFixed(1) + '% aos 30s. Reescreva a abertura.');
+            }
+
+            if (porcentagemMedia < 40) {
+                insights.push('📉 <strong>RETENÇÃO BAIXA:</strong> ' + porcentagemMedia.toFixed(1) + '%. Corte partes lentas.');
+            }
+
+            if (insights.length === 0) {
+                insights.push('📊 Continue monitorando sua retenção.');
+            }
+
+            document.getElementById('retencao-insights').innerHTML = `
+                <h3>💡 Insights & Ações Recomendadas</h3>
+                <ul>${insights.map(i => `<li>${i}</li>`).join('')}</ul>
+            `;
+        }
+
+        function renderEngagementSection(data, likeToViewRatio, commentToViewRatio, sentimentoComentarios, likeStatus, commentStatus) {
+            const sentimentClass = sentimentoComentarios >= 80 ? 'excelente' : sentimentoComentarios >= 60 ? 'bom' : 'ruim';
+            const sentimentText = sentimentoComentarios >= 80 ? 'Muito Positivo' : sentimentoComentarios >= 60 ? 'Positivo' : 'Misto';
+
+            document.getElementById('engajamento-metrics').innerHTML = `
+                <div class="metric-card">
+                    <div class="metric-card-label">Like-to-View Ratio</div>
+                    <div class="metric-card-value">${likeToViewRatio.toFixed(2)}%</div>
+                    <div class="status-badge status-${likeStatus.class}">${likeStatus.text}</div>
+                    <div style="color: #8b92b0; margin-top: 10px; font-size: 0.85rem;">${data.gostei} gostei / ${data.naoGostei} não gostei</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-card-label">Comment-to-View Ratio</div>
+                    <div class="metric-card-value">${commentToViewRatio.toFixed(3)}%</div>
+                    <div class="status-badge status-${commentStatus.class}">${commentStatus.text}</div>
+                    <div style="color: #8b92b0; margin-top: 10px; font-size: 0.85rem;">${data.comentarios} comentários</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-card-label">Sentimento</div>
+                    <div class="metric-card-value">${sentimentoComentarios > 0 ? sentimentoComentarios.toFixed(1) + '%' : 'N/A'}</div>
+                    ${sentimentoComentarios > 0 ? `<div class="status-badge status-${sentimentClass}">${sentimentText}</div>` : ''}
+                    <div style="color: #8b92b0; margin-top: 10px; font-size: 0.85rem;">${data.comentariosPositivos} pos / ${data.comentariosNegativos} neg</div>
+                </div>
+            `;
+
+            const engagementData = [{
+                x: ['Likes', 'Comentários', 'Positivos', 'Negativos'],
+                y: [data.gostei, data.comentarios, data.comentariosPositivos, data.comentariosNegativos],
+                type: 'bar',
+                marker: { color: ['#ff3366', '#00d9ff', '#00ff88', '#ff4444'] },
+                text: [data.gostei, data.comentarios, data.comentariosPositivos, data.comentariosNegativos],
+                textposition: 'auto'
+            }];
+
+            const engagementLayout = {
+                title: 'Métricas de Engajamento',
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: { color: '#ffffff', size: 12 }
+            };
+
+            Plotly.newPlot('engagement-chart', engagementData, engagementLayout, {responsive: true});
+
+            const insights = [];
+            if (likeToViewRatio >= 4) {
+                insights.push('🔥 <strong>LIKE RATIO EXCELENTE!</strong> ' + likeToViewRatio.toFixed(2) + '% está muito acima da média!');
+            } else if (likeToViewRatio < 2) {
+                insights.push('⚠️ <strong>LIKE RATIO BAIXO:</strong> ' + likeToViewRatio.toFixed(2) + '%. Adicione CTAs para curtir.');
+            }
+
+            if (commentToViewRatio >= 0.5) {
+                insights.push('💬 <strong>ENGAJAMENTO EXCELENTE!</strong> ' + commentToViewRatio.toFixed(3) + '% está acima do benchmark!');
+            } else if (commentToViewRatio < 0.1) {
+                insights.push('💡 <strong>BAIXO ENGAJAMENTO:</strong> ' + commentToViewRatio.toFixed(3) + '%. Faça perguntas no vídeo.');
+            }
+
+            if (insights.length === 0) {
+                insights.push('📊 Continue monitorando seu engajamento.');
+            }
+
+            document.getElementById('engajamento-insights').innerHTML = `
+                <h3>💡 Insights & Ações Recomendadas</h3>
+                <ul>${insights.map(i => `<li>${i}</li>`).join('')}</ul>
+            `;
+        }
+
+        function renderConversionSection(data, subsConversionRate, totalVis, percInscritos, percNaoInscritos, subsStatus) {
+            const newViewerClass = data.novosEspectadores >= 60 ? 'excelente' : data.novosEspectadores >= 40 ? 'bom' : 'ruim';
+            const newViewerText = data.novosEspectadores >= 60 ? 'Alto alcance' : data.novosEspectadores >= 40 ? 'Balanceado' : 'Base fiel';
+
+            document.getElementById('conversao-metrics').innerHTML = `
+                <div class="metric-card">
+                    <div class="metric-card-label">Taxa de Conversão</div>
+                    <div class="metric-card-value">${subsConversionRate.toFixed(2)}%</div>
+                    <div class="status-badge status-${subsStatus.class}">${subsStatus.text}</div>
+                    <div style="color: #8b92b0; margin-top: 10px; font-size: 0.85rem;">${data.novosInscritos} novos inscritos</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-card-label">Novos Espectadores</div>
+                    <div class="metric-card-value">${data.novosEspectadores.toFixed(1)}%</div>
+                    <div class="status-badge status-${newViewerClass}">${newViewerText}</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-card-label">Espectadores Casuais</div>
+                    <div class="metric-card-value">${data.espectadoresCasuais.toFixed(1)}%</div>
+                    ${data.espectadoresCasuais >= 40 ? '<div class="status-badge status-excelente">Base engajada</div>' : ''}
+                </div>
+            `;
+
+            if (totalVis > 0) {
+                const subscriberData = [{
+                    values: [data.visualizacoesInscritos, data.visualizacoesNaoInscritos],
+                    labels: ['Inscritos', 'Não Inscritos'],
+                    type: 'pie',
+                    marker: { colors: ['#00ff88', '#ff3366'] },
+                    textinfo: 'label+percent'
+                }];
+
+                const subscriberLayout = {
+                    title: 'Visualizações por Tipo',
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    font: { color: '#ffffff', size: 12 }
+                };
+
+                Plotly.newPlot('subscriber-chart', subscriberData, subscriberLayout, {responsive: true});
+            }
+
+            const insights = [];
+            if (subsConversionRate >= 1.5) {
+                insights.push('🚀 <strong>CONVERSÃO EXCELENTE!</strong> ' + subsConversionRate.toFixed(2) + '% está muito acima da média!');
+            } else if (subsConversionRate < 0.5) {
+                insights.push('⚠️ <strong>CONVERSÃO BAIXA:</strong> ' + subsConversionRate.toFixed(2) + '%. Adicione CTAs claros.');
+            }
+
+            if (data.novosEspectadores >= 50) {
+                insights.push('🌟 <strong>ALTO ALCANCE NOVO:</strong> ' + data.novosEspectadores.toFixed(1) + '% são novos!');
+            }
+
+            if (insights.length === 0) {
+                insights.push('📊 Continue monitorando suas conversões.');
+            }
+
+            document.getElementById('conversao-insights').innerHTML = `
+                <h3>💡 Insights & Ações Recomendadas</h3>
+                <ul>${insights.map(i => `<li>${i}</li>`).join('')}</ul>
+            `;
+        }
+
+        function renderExecutiveSummary(data, porcentagemMedia, likeToViewRatio, subsConversionRate) {
+            const prioridades = [];
+            if (data.porcentagem30s < 60) prioridades.push('<strong>#1 HOOK:</strong> Retenção de 30s em ' + data.porcentagem30s.toFixed(1) + '%. Reescreva a abertura.');
+            if (data.taxaCliques < 2.5) prioridades.push('<strong>#1 CTR:</strong> ' + data.taxaCliques.toFixed(2) + '% está baixo. Teste novos thumbnails.');
+            if (subsConversionRate < 0.5) prioridades.push('<strong>CONVERSÃO:</strong> ' + subsConversionRate.toFixed(2) + '% baixo. Adicione CTAs.');
+            if (prioridades.length === 0) prioridades.push('✅ Vídeo performando bem em todas as métricas!');
+
+            const pontosFortes = [];
+            if (data.taxaCliques >= 5) pontosFortes.push('CTR excelente (' + data.taxaCliques.toFixed(2) + '%)');
+            if (data.porcentagem30s >= 70) pontosFortes.push('Hook excelente (' + data.porcentagem30s.toFixed(1) + '%)');
+            if (likeToViewRatio >= 4) pontosFortes.push('Like ratio excelente (' + likeToViewRatio.toFixed(2) + '%)');
+            if (pontosFortes.length === 0) pontosFortes.push('Continue trabalhando nas métricas!');
+
+            document.getElementById('priority-actions').innerHTML = prioridades.map(p => '<li>' + p + '</li>').join('');
+            document.getElementById('strong-points').innerHTML = pontosFortes.map(p => '<li>✓ ' + p + '</li>').join('');
+        }
+    </script>
+</body>
+</html>
